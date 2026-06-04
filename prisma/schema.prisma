@@ -1,0 +1,98 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Joueur {
+  id            Int      @id @default(autoincrement())
+  nom           String
+  equipe        String
+  position      String
+  numero        Int
+  nationalite   String
+  age           Int
+  buts          Int      @default(0)
+  passes        Int      @default(0)
+  matchsJoues   Int      @default(0)
+  cartonsJaunes Int      @default(0)
+  cartonsRouges Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@map("joueurs")
+}
+
+model Match {
+  id          Int        @id @default(autoincrement())
+  domicile    String
+  exterieur   String
+  competition String
+  date        DateTime
+  stade       String
+  statut      String     @default("à venir")
+  scoreDom    Int?
+  scoreExt    Int?
+  createdAt   DateTime   @default(now())
+
+  billets     Billet[]
+  commandes   Commande[]
+
+  @@map("matchs")
+}
+
+model MenuItem {
+  id         Int             @id @default(autoincrement())
+  nom        String
+  categorie  String
+  prix       Float
+  disponible Boolean         @default(true)
+  lignes     LigneCommande[]
+
+  @@map("menu_items")
+}
+
+model Commande {
+  id                  Int             @id @default(autoincrement())
+  matchId             Int
+  match               Match           @relation(fields: [matchId], references: [id])
+  siege               String
+  total               Float
+  statut              String          @default("en préparation")
+  estimationLivraison String          @default("15-20 minutes")
+  createdAt           DateTime        @default(now())
+  lignes              LigneCommande[]
+
+  @@map("commandes")
+}
+
+model LigneCommande {
+  id           Int      @id @default(autoincrement())
+  commandeId   Int
+  commande     Commande @relation(fields: [commandeId], references: [id])
+  menuItemId   Int
+  menuItem     MenuItem @relation(fields: [menuItemId], references: [id])
+  quantite     Int
+  prixUnitaire Float
+  sousTotal    Float
+
+  @@map("lignes_commande")
+}
+
+model Billet {
+  id           String   @id @default(cuid())
+  matchId      Int
+  match        Match    @relation(fields: [matchId], references: [id])
+  categorie    String
+  quantite     Int
+  nomAcheteur  String
+  email        String
+  prixUnitaire Float
+  total        Float
+  statut       String   @default("confirmé")
+  createdAt    DateTime @default(now())
+
+  @@map("billets")
+}
